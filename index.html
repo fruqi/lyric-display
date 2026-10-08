@@ -47,7 +47,14 @@
         <span class="label">Next</span><svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
       </button>
     </div>
-    <p class="hint"><kbd>←</kbd> <kbd>→</kbd> navigate · <kbd>Space</kbd> play / pause · click the bar to jump</p>
+    <div class="speed">
+      <label for="speed">Speed</label>
+      <span class="speed-end" aria-hidden="true">Slow</span>
+      <input type="range" id="speed" min="0" step="1">
+      <span class="speed-end" aria-hidden="true">Fast</span>
+      <output id="speed-value" for="speed"></output>
+    </div>
+    <p class="hint"><kbd>←</kbd> <kbd>→</kbd> navigate · <kbd>Space</kbd> play / pause · <kbd>−</kbd> <kbd>+</kbd> speed · click the bar to jump</p>
 
     <div id="loader">
       <p>Couldn't load <code id="filename"></code>. Choose a lyrics file instead:</p>

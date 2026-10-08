@@ -25,6 +25,8 @@ body {
   margin: 0;
   min-height: 100svh;
   display: grid;
+  /* minmax(0, 1fr) stops long unwrapped text from widening the column past the screen */
+  grid-template-columns: minmax(0, 1fr);
   place-items: center;
   padding: 16px;
   overflow-x: hidden;
@@ -230,6 +232,61 @@ body.playing #play { animation: pulse 2s ease-in-out infinite; }
   50% { box-shadow: 0 8px 40px rgba(251, 191, 36, 0.55); }
 }
 
+/* Speed slider */
+.speed {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.speed label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.speed-end { font-size: 0.75rem; opacity: 0.7; }
+#speed-value {
+  min-width: 6.5ch;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+  font-weight: 500;
+}
+#speed {
+  --fill: 50%;
+  -webkit-appearance: none;
+  appearance: none;
+  width: min(14rem, 100%);
+  height: 6px;
+  margin: 0;
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, var(--accent), var(--accent-2)) 0 / var(--fill) 100% no-repeat,
+    var(--faint);
+  cursor: pointer;
+}
+#speed::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--fg);
+  border: none;
+  box-shadow: 0 0 0 4px rgba(232, 121, 249, 0.25), 0 2px 8px rgba(0, 0, 0, 0.4);
+  transition: transform 0.15s var(--ease), box-shadow 0.15s;
+}
+#speed::-moz-range-thumb {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--fg);
+  border: none;
+  box-shadow: 0 0 0 4px rgba(232, 121, 249, 0.25), 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+#speed:hover::-webkit-slider-thumb { transform: scale(1.12); }
+#speed:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 6px; }
+
 .hint { margin: -0.5rem 0 0; text-align: center; font-size: 0.75rem; color: var(--muted); opacity: 0.7; }
 kbd {
   font: 500 0.7rem var(--font-ui);
@@ -250,10 +307,18 @@ kbd {
   .controls button:not(#play) { flex: 1; padding: 0.75rem 0.5rem; }
   .label { display: none; }
   .hint { display: none; }
+  .speed-end { display: none; }
+  #speed { flex: 1; }
 }
 @media (max-height: 560px) and (orientation: landscape) {
-  .stage { min-height: 6.5rem; }
-  .card { gap: 1rem; padding: 1.25rem 2rem; }
+  body { padding: 8px 16px; }
+  .card { gap: 0.75rem; padding: 1rem 2rem; }
+  .vinyl { width: 32px; height: 32px; }
+  .eyebrow { display: none; }
+  .stage { min-height: 5rem; }
+  .text { font-size: clamp(1.2rem, 4.5vh, 1.6rem); }
+  #play { width: 3.5rem; height: 3.5rem; }
+  .controls button:not(#play) { padding: 0.55rem 1rem; }
   .hint, .up-next { display: none; }
 }
 

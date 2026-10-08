@@ -1,4 +1,7 @@
-const DELAY_MS = 2000;
+// Seconds per line for each speed slider step, slowest (left) to fastest (right)
+const SPEEDS = [5, 4, 3, 2.5, 2, 1.5, 1.25, 1, 0.75, 0.5];
+const DEFAULT_SPEED = 2;
+const SPEED_KEY = 'lyric-display:speed';
 // Load lyrics.txt by default; override with ?file=other.txt
 const lyricsFile = new URLSearchParams(location.search).get('file') || 'lyrics.txt';
 
@@ -9,10 +12,12 @@ const DURATION = parseFloat(getComputedStyle(document.documentElement).getProper
 const $ = id => document.getElementById(id);
 const stage = $('stage'), upNext = $('up-next'), bar = $('bar'), barFill = $('bar-fill');
 const prevBtn = $('prev'), nextBtn = $('next'), playBtn = $('play');
+const speedInput = $('speed'), speedValue = $('speed-value');
 
 let lines = [];
 let index = 0;
 let timer = null;
+let delayMs = DEFAULT_SPEED * 1000;
 
 function makeSlot(i) {
   const slot = document.createElement('div');
@@ -48,6 +53,8 @@ function render() {
 
   if (!lines.length) {
     [prevBtn, nextBtn, playBtn].forEach(b => b.disabled = true);
+    $('progress-text').textContent = $('percent').textContent = upNext.textContent = '';
+    barFill.style.width = '0';
     return;
   }
   const pct = Math.round(((index + 1) / lines.length) * 100);
@@ -82,14 +89,50 @@ function stop() {
   render();
 }
 
-function play() {
-  // Restart from the top if we're already at the end
-  if (index === lines.length - 1) go(0);
+function startTimer() {
+  clearInterval(timer);
   timer = setInterval(() => {
     go(index + 1);
     if (index === lines.length - 1) stop();
-  }, DELAY_MS);
+  }, delayMs);
+}
+
+function play() {
+  // Restart from the top if we're already at the end
+  if (index === lines.length - 1) go(0);
+  startTimer();
   render();
+}
+
+function setSpeed(step) {
+  const seconds = SPEEDS[step];
+  delayMs = seconds * 1000;
+  speedValue.textContent = `${seconds} s / line`;
+  speedInput.setAttribute('aria-valuetext', `${seconds} seconds per line`);
+  // Fill the track up to the thumb
+  speedInput.style.setProperty('--fill', `${(step / (SPEEDS.length - 1)) * 100}%`);
+  try { localStorage.setItem(SPEED_KEY, seconds); } catch {}
+  // Apply immediately if playing
+  if (timer) startTimer();
+}
+
+function nudgeSpeed(delta) {
+  const step = Math.max(0, Math.min(SPEEDS.length - 1, Number(speedInput.value) + delta));
+  speedInput.value = step;
+  setSpeed(step);
+}
+
+function initSpeed() {
+  let saved = DEFAULT_SPEED;
+  try { saved = parseFloat(localStorage.getItem(SPEED_KEY)) || DEFAULT_SPEED; } catch {}
+  let step = SPEEDS.indexOf(saved);
+  if (step < 0) step = SPEEDS.indexOf(DEFAULT_SPEED);
+  speedInput.max = SPEEDS.length - 1;
+  speedInput.value = step;
+  setSpeed(step);
+  speedInput.addEventListener('input', () => setSpeed(Number(speedInput.value)));
+  // Release focus after a mouse/touch drag so the arrow and space shortcuts keep working
+  speedInput.addEventListener('pointerup', () => speedInput.blur());
 }
 
 prevBtn.addEventListener('click', () => { stop(); go(index - 1); });
@@ -104,6 +147,10 @@ bar.addEventListener('click', e => {
 });
 
 document.addEventListener('keydown', e => {
+  // Let a focused slider or file input keep its own arrow/space keys
+  if (e.target.tagName === 'INPUT') return;
+  if (e.key === '+' || e.key === '=') return nudgeSpeed(1);
+  if (e.key === '-') return nudgeSpeed(-1);
   if (e.key === 'ArrowRight' && !nextBtn.disabled) nextBtn.click();
   else if (e.key === 'ArrowLeft' && !prevBtn.disabled) prevBtn.click();
   else if (e.key === ' ' && !playBtn.disabled) { e.preventDefault(); playBtn.click(); }
@@ -114,6 +161,7 @@ function setLyrics(text, name) {
   index = 0;
   $('title').textContent = name.split('/').pop().replace(/\.txt$/i, '').replace(/[_-]+/g, ' ');
   if (lines.length) showLine(1);
+  else showMessage('This file has no lyrics.');
   stop();
 }
 
@@ -143,3 +191,5 @@ fetch(lyricsFile)
     $('loader').style.display = 'block';
     render();
   });
+
+initSpeed();
