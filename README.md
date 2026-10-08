@@ -62,6 +62,8 @@ lyric-display/
 │   └── fixtures/       # Small lyrics files used by the tests
 ├── lyrics.txt      # Default lyrics (placeholder)
 ├── sonnet_18.txt   # Sample text
+├── eslint.config.mjs  # Lint rules
+├── package.json       # ESLint dev dependency
 └── README.md
 ```
 
@@ -85,6 +87,15 @@ Run the tests:
 ```
 
 Add `--headed --slowmo 300` to watch the tests run in a visible browser.
+
+### Linting
+
+[ESLint](https://eslint.org/) checks `js/` for mistakes such as typos in variable names and unused code. It needs Node.js:
+
+```bash
+npm install
+npm run lint
+```
 
 ## Customization
 

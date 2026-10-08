@@ -83,7 +83,7 @@ function go(newIndex) {
   render();
 }
 
-function stop() {
+function pause() {
   clearInterval(timer);
   timer = null;
   render();
@@ -93,7 +93,7 @@ function startTimer() {
   clearInterval(timer);
   timer = setInterval(() => {
     go(index + 1);
-    if (index === lines.length - 1) stop();
+    if (index === lines.length - 1) pause();
   }, delayMs);
 }
 
@@ -111,7 +111,7 @@ function setSpeed(step) {
   speedInput.setAttribute('aria-valuetext', `${seconds} seconds per line`);
   // Fill the track up to the thumb
   speedInput.style.setProperty('--fill', `${(step / (SPEEDS.length - 1)) * 100}%`);
-  try { localStorage.setItem(SPEED_KEY, seconds); } catch {}
+  try { localStorage.setItem(SPEED_KEY, seconds); } catch { /* storage blocked: carry on without it */ }
   // Apply immediately if playing
   if (timer) startTimer();
 }
@@ -124,7 +124,7 @@ function nudgeSpeed(delta) {
 
 function initSpeed() {
   let saved = DEFAULT_SPEED;
-  try { saved = parseFloat(localStorage.getItem(SPEED_KEY)) || DEFAULT_SPEED; } catch {}
+  try { saved = parseFloat(localStorage.getItem(SPEED_KEY)) || DEFAULT_SPEED; } catch { /* storage blocked: carry on without it */ }
   let step = SPEEDS.indexOf(saved);
   if (step < 0) step = SPEEDS.indexOf(DEFAULT_SPEED);
   speedInput.max = SPEEDS.length - 1;
@@ -135,14 +135,14 @@ function initSpeed() {
   speedInput.addEventListener('pointerup', () => speedInput.blur());
 }
 
-prevBtn.addEventListener('click', () => { stop(); go(index - 1); });
-nextBtn.addEventListener('click', () => { stop(); go(index + 1); });
-playBtn.addEventListener('click', () => timer ? stop() : play());
+prevBtn.addEventListener('click', () => { pause(); go(index - 1); });
+nextBtn.addEventListener('click', () => { pause(); go(index + 1); });
+playBtn.addEventListener('click', () => timer ? pause() : play());
 
 bar.addEventListener('click', e => {
   if (!lines.length) return;
   const rect = bar.getBoundingClientRect();
-  stop();
+  pause();
   go(Math.floor(((e.clientX - rect.left) / rect.width) * lines.length));
 });
 
@@ -162,7 +162,7 @@ function setLyrics(text, name) {
   $('title').textContent = name.split('/').pop().replace(/\.txt$/i, '').replace(/[_-]+/g, ' ');
   if (lines.length) showLine(1);
   else showMessage('This file has no lyrics.');
-  stop();
+  pause();
 }
 
 function showMessage(msg) {
